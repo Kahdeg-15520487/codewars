@@ -7,11 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "add_big_number", "add_big_n
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "lift", "lift\lift.csproj", "{1E3ABA65-0DD6-4221-98E6-9FC10AA84F97}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "weightednumber", "weightednumber\weightednumber.csproj", "{7F0F4E0F-4915-4D30-B21D-5C6E1F272F2D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "weightednumber", "weightednumber\weightednumber.csproj", "{7F0F4E0F-4915-4D30-B21D-5C6E1F272F2D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "utility", "utility\utility.csproj", "{901B1BAE-64A5-4878-826C-1633BDCBCC78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "utility", "utility\utility.csproj", "{901B1BAE-64A5-4878-826C-1633BDCBCC78}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "texas_holdem", "texas_holdem\texas_holdem.csproj", "{6A617FA9-627C-4C16-BACD-916449F01545}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "texas_holdem", "texas_holdem\texas_holdem.csproj", "{6A617FA9-627C-4C16-BACD-916449F01545}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "simplexer", "simplexer\simplexer.csproj", "{EDC9AE86-72BF-4235-BF8E-E7DE53B77E61}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{6A617FA9-627C-4C16-BACD-916449F01545}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A617FA9-627C-4C16-BACD-916449F01545}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A617FA9-627C-4C16-BACD-916449F01545}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDC9AE86-72BF-4235-BF8E-E7DE53B77E61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDC9AE86-72BF-4235-BF8E-E7DE53B77E61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDC9AE86-72BF-4235-BF8E-E7DE53B77E61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDC9AE86-72BF-4235-BF8E-E7DE53B77E61}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

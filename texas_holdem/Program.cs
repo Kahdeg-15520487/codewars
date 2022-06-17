@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 
 using utility;
 
@@ -18,11 +19,11 @@ public static class Kata
     {
         var sorted = holeCards.Concat(communityCards).OrderByDescending(c => (cardValueLookup[c[0] + ""]) * 10 + cardValueLookup[c.Last() + ""]);
 
-        var flush = sorted.GroupBy(c => c.Last()).Where(g => g.Count() >= 5);
-        var straight_flush = flush.SelectMany(g => g.ToList()).Take(5).Reverse().Select((c, i) => cardValueLookup[c[0] + ""] - i).Distinct();
-        if (straight_flush.Count() == 1)
+        var flush = sorted.GroupBy(c => c.Last()).Where(g => g.Count() >= 5).ToList();
+        var straight_flush = flush.SelectMany(g => g.ToList().DistinctBy(c => c[0]).GroupWhile((x, y) => cardValueLookup[x[0] + ""] - cardValueLookup[y[0] + ""] == 1));
+        if (straight_flush.Any(g => g.Count() >= 5))
         {
-            return ("straight-flush", flush.SelectMany(g => g.ToList().Select(c => c[0] == '1' ? "10" : c[0] + "")).Take(5).ToArray());
+            return ("straight-flush", straight_flush.Where(g => g.Count() >= 5).SelectMany(g => g.ToList().Take(5).Select(c => c[0] == '1' ? "10" : c[0] + "")).ToArray());
         }
 
         var byrank = sorted.GroupBy(c => c.First());
@@ -36,21 +37,24 @@ public static class Kata
         }
 
         var three_of_a_kind = byrank.Where(g => g.Count() == 3);
-        var pair = byrank.Where(g => g.Count() == 2);
-        if (three_of_a_kind.Any() && pair.Any())
+        var pair = byrank.Where(g => g.Count() >= 2);
+        var fullhouse_pair = pair.Where(g => three_of_a_kind.First().ToList()[0][0] != g.ToList().First()[0]);
+        if (three_of_a_kind.Any() && fullhouse_pair.Any())
         {
-            return ("full house", three_of_a_kind.Take(1).Concat(pair.Take(1)).SelectMany(g => g.ToList().Select(c => c[0] == '1' ? "10" : c[0] + "")).Distinct().ToArray());
+            var first = three_of_a_kind.Take(1).SelectMany(g => g.ToList());
+            var last = fullhouse_pair.Take(1).SelectMany(g => g.ToList()).Take(2);
+            return ("full house", first.Concat(last).Select(c => c[0] == '1' ? "10" : c[0] + "").Distinct().ToArray());
         }
 
         if (flush.Any())
         {
             return ("flush", flush.SelectMany(g => g.ToList().Take(5).Select(c => c[0] == '1' ? "10" : c[0] + "")).ToArray());
         }
-        var ttt = sorted.Distinct().Take(5);
-        var straight = sorted.Select(c => cardValueLookup[c[0] + ""]).Distinct().Take(5).Reverse().Select((c, i) => c - i).Distinct();
-        if (straight.Count() == 1)
+
+        var straight = sorted.DistinctBy(c => c[0]).GroupWhile((x, y) => cardValueLookup[x[0] + ""] - cardValueLookup[y[0] + ""] == 1).ToList();
+        if (straight.Any(g => g.Count() >= 5))
         {
-            return ("straight", sorted.Select(c => c[0]).Distinct().Take(5).Select(c => c == '1' ? "10" : c + "").ToArray());
+            return ("straight", straight.Where(g => g.Count() >= 5).First().Take(5).Select(c => c[0] == '1' ? "10" : c[0] + "").ToArray());
         }
 
         if (three_of_a_kind.Any())
@@ -59,7 +63,7 @@ public static class Kata
             return ("three-of-a-kind", three_of_a_kind.Take(1).SelectMany(g => g.ToList()).Concat(lastCard).Select(c => c[0] == '1' ? "10" : c[0] + "").Distinct().ToArray());
         }
 
-        if (pair.Count() == 2)
+        if (pair.Count() >= 2)
         {
             var lastCard = sorted.Except(pair.Take(2).SelectMany(g => g.ToList())).Take(1);
             return ("two pair", pair.Take(2).SelectMany(g => g.ToList()).Concat(lastCard).Select(c => c[0] == '1' ? "10" : c[0] + "").Distinct().ToArray());
@@ -73,6 +77,29 @@ public static class Kata
 
         return ("nothing", sorted.Take(5).Select(c => c[0] == '1' ? "10" : c[0] + "").ToArray());
     }
+
+    public static IEnumerable<IEnumerable<T>> GroupWhile<T>(this IEnumerable<T> seq, Func<T, T, bool> condition)
+    {
+        if (!seq.Any())
+        {
+            yield break;
+        }
+        T prev = seq.First();
+        List<T> list = new List<T>() { prev };
+
+        foreach (T item in seq.Skip(1))
+        {
+            if (condition(prev, item) == false)
+            {
+                yield return list;
+                list = new List<T>();
+            }
+            list.Add(item);
+            prev = item;
+        }
+
+        yield return list;
+    }
 }
 
 public class SolutionTest
@@ -81,27 +108,32 @@ public class SolutionTest
 
     public void FixedTests()
     {
-        // expected: hand name         cards                       input -> hole cards           community cards
-        //SampleTest(("nothing", new[] { "A", "K", "Q", "J", "9" }), new[] { "K♠", "A♦" }, new[] { "J♣", "Q♥", "9♥", "2♥", "3♦" });
-        //SampleTest(("pair", new[] { "Q", "K", "J", "9" }), new[] { "K♠", "Q♦" }, new[] { "J♣", "Q♥", "9♥", "2♥", "3♦" });
-        //SampleTest(("two pair", new[] { "K", "J", "9" }), new[] { "K♠", "J♦" }, new[] { "J♣", "K♥", "9♥", "2♥", "3♦" });
-        //SampleTest(("two pair", new[] { "K", "J", "9" }), new[] { "K♠", "J♦" }, new[] { "J♣", "K♥", "9♥", "2♥", "3♦" });
-        //SampleTest(("three-of-a-kind", new[] { "Q", "J", "9" }), new[] { "4♠", "9♦" }, new[] { "J♣", "Q♥", "Q♠", "2♥", "Q♦" });
-        //SampleTest(("straight", new[] { "K", "Q", "J", "10", "9" }), new[] { "Q♠", "2♦" }, new[] { "J♣", "10♥", "9♥", "K♥", "3♦" });
-        //SampleTest(("straight", new[] { "Q", "J", "10", "9", "8" }), new[] { "Q♠", "J♥" }, new[] { "7♦", "8♥", "Q♦", "10♦", "9♣" });
+        //// expected: hand name         cards                       input -> hole cards           community cards
+        SampleTest(("nothing", new[] { "A", "K", "Q", "J", "9" }), new[] { "K♠", "A♦" }, new[] { "J♣", "Q♥", "9♥", "2♥", "3♦" });
+        SampleTest(("pair", new[] { "Q", "K", "J", "9" }), new[] { "K♠", "Q♦" }, new[] { "J♣", "Q♥", "9♥", "2♥", "3♦" });
+        SampleTest(("two pair", new[] { "K", "J", "9" }), new[] { "K♠", "J♦" }, new[] { "J♣", "K♥", "9♥", "2♥", "3♦" });
+        SampleTest(("two pair", new[] { "K", "J", "9" }), new[] { "K♠", "J♦" }, new[] { "J♣", "K♥", "9♥", "2♥", "3♦" });
+        SampleTest(("three-of-a-kind", new[] { "Q", "J", "9" }), new[] { "4♠", "9♦" }, new[] { "J♣", "Q♥", "Q♠", "2♥", "Q♦" });
+        SampleTest(("straight", new[] { "K", "Q", "J", "10", "9" }), new[] { "Q♠", "2♦" }, new[] { "J♣", "10♥", "9♥", "K♥", "3♦" });
+        SampleTest(("straight", new[] { "Q", "J", "10", "9", "8" }), new[] { "Q♠", "J♥" }, new[] { "7♦", "8♥", "Q♦", "10♦", "9♣" });
         SampleTest(("straight", new[] { "10", "9", "8", "7", "6" }), new[] { "10♣", "9♥" }, new[] { "6♠", "7♥", "8♠", "K♥", "Q♥" });
-        //SampleTest(("flush", new[] { "Q", "J", "10", "5", "3" }), new[] { "A♠", "K♦" }, new[] { "J♥", "5♥", "10♥", "Q♥", "3♥" });
-        //SampleTest(("full house", new[] { "A", "K" }), new[] { "A♠", "A♦" }, new[] { "K♣", "K♥", "A♥", "Q♥", "3♦" });
-        //SampleTest(("four-of-a-kind", new[] { "2", "3" }), new[] { "2♠", "3♦" }, new[] { "2♣", "2♥", "3♠", "3♥", "2♦" });
-        //SampleTest(("straight-flush", new[] { "J", "10", "9", "8", "7" }), new[] { "8♠", "6♠" }, new[] { "7♠", "5♠", "9♠", "J♠", "10♠" });
+        SampleTest(("flush", new[] { "Q", "J", "10", "5", "3" }), new[] { "A♠", "K♦" }, new[] { "J♥", "5♥", "10♥", "Q♥", "3♥" });
+        SampleTest(("full house", new[] { "A", "K" }), new[] { "A♠", "A♦" }, new[] { "K♣", "K♥", "A♥", "Q♥", "3♦" });
+        SampleTest(("full house", new[] { "Q", "8" }), new[] { "Q♦", "Q♠" }, new[] { "8♠", "Q♣", "7♦", "8♦", "8♣" });
+        SampleTest(("four-of-a-kind", new[] { "2", "3" }), new[] { "2♠", "3♦" }, new[] { "2♣", "2♥", "3♠", "3♥", "2♦" });
+        SampleTest(("straight-flush", new[] { "J", "10", "9", "8", "7" }), new[] { "8♠", "6♠" }, new[] { "7♠", "5♠", "9♠", "J♠", "10♠" });
+        SampleTest(("straight-flush", new[] { "9", "8", "7", "6", "5" }), new[] { "2♥", "6♠" }, new[] { "Q♠", "7♠", "5♠", "8♠", "9♠" });
     }
 
     private static void SampleTest((string type, string[] ranks) expected, string[] holeCards, string[] communityCards)
     {
         Console.WriteLine("??: {0} - {1}", expected.type, string.Join(", ", expected.ranks));
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
         var actual = Act(holeCards, communityCards);
+        stopwatch.Stop();
         Verify(expected, actual, holeCards, communityCards);
-        Console.WriteLine("OK: {0} - {1}", actual.type, string.Join(", ", actual.ranks));
+        Console.WriteLine("OK: {0} - {1} take {2}ms", actual.type, string.Join(", ", actual.ranks), stopwatch.ElapsedMilliseconds);
     }
 
     #endregion

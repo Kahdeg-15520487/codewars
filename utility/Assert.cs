@@ -9,7 +9,7 @@
                 Console.WriteLine("OK");
                 return;
             }
-            Console.WriteLine(msg);
+            Console.WriteLine("Failed " + msg);
         }
 
         public static void IsTrue(bool v, string msg = "")
@@ -19,7 +19,7 @@
                 Console.WriteLine("OK");
                 return;
             }
-            Console.WriteLine(msg);
+            Console.WriteLine("Failed " + msg);
         }
 
         public static void AreEqual<T>(T v1, T v2, string msg = "") where T : IEquatable<T>
@@ -29,7 +29,17 @@
                 Console.WriteLine("OK");
                 return;
             }
-            Console.WriteLine(msg);
+            Console.WriteLine("Failed "+msg);
+        }
+
+        public static void AreEqual<T>(T[] v1, T[] v2, string msg = "") where T : IEquatable<T>
+        {
+            if (v1.ToList().SequenceEqual(v2.ToList(), EqualityComparer<T>.Default))
+            {
+                Console.WriteLine("OK");
+                return;
+            }
+            Console.WriteLine("Failed " + msg);
         }
     }
 }
